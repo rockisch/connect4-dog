@@ -1,4 +1,3 @@
-import logging
 import tkinter as tk
 from tkinter import ttk, N, E, W, S, font as tkFont
 from typing import Dict, Optional
@@ -35,21 +34,22 @@ AA_SLOT_FULL = AA_SLOT_SIZE + AA_SLOT_PAD
 
 
 class Connect4Interface(PyNetgamesServerListener):
+    match_id: Optional[str]
     server_proxy: PyNetgamesServerProxy
-    logger: logging.Logger
+    board: Optional[Tabuleiro]
 
     tk: tk.Tk
-    mainframe = ttk.Frame
-    current_frame = ttk.Frame
-
-    match_id: Optional[str]
-    board: Optional[Tabuleiro]
+    _mainframe: ttk.Frame
+    _current_screen: ttk.Frame
+    _connect_button: Optional[ttk.Button]
+    _start_button: Optional[ttk.Button]
 
     def __init__(self) -> None:
         super().__init__()
 
+        self.match_id = None
         self.server_proxy = PyNetgamesServerProxy()
-        self.logger = logging.getLogger("Connect4Interface")
+        self.board = None
 
         self.tk = tk.Tk()
         ttk.Style().configure(BASE_STYLE, background="lightblue")
@@ -59,64 +59,56 @@ class Connect4Interface(PyNetgamesServerListener):
         self.tk.title("Connect 4")
         self.tk.geometry("1280x720")
         self.tk.resizable(width=False, height=False)
-        self.mainframe = ttk.Frame(self.tk, style=BASE_STYLE)
-        self.mainframe.grid(sticky="news")
-        self.mainframe.rowconfigure(0, weight=1)
-        self.mainframe.columnconfigure(0, weight=1)
-        self.current_frame = ttk.Frame(self.mainframe)
-
-        self.match_id = None
-        self.board = None
-        self.start_button = None
+        self._mainframe = ttk.Frame(self.tk, style=BASE_STYLE)
+        self._mainframe.grid(sticky="news")
+        self._mainframe.rowconfigure(0, weight=1)
+        self._mainframe.columnconfigure(0, weight=1)
+        self._current_screen = ttk.Frame(self._mainframe)
+        self._connect_button = None
+        self._start_button = None
 
     def render_menu(self):
-        menu_frame = ttk.Frame(
-            self.mainframe,
+        menu_screen = ttk.Frame(
+            self._mainframe,
             style="Base.TFrame",
             padding="100",
         )
         render = ImageTk.PhotoImage(Image.open("assets/logo.png"))
         # Weird behavior with 'Pillow' where
         label = ttk.Label(
-            menu_frame, text="Connect 4", image=render, background="lightblue"
+            menu_screen, text="Connect 4", image=render, background="lightblue"
         )
         label.image = render
         label.grid(row=0, column=0)
-        self.connect_button = ttk.Button(
-            menu_frame,
+        self._connect_button = ttk.Button(
+            menu_screen,
             text="Connect",
             padding="15 10",
             command=self.connect,
         )
-        self.connect_button.grid(row=1, column=0, pady=5)
-        self.start_button = ttk.Button(
-            menu_frame,
+        self._connect_button.grid(row=1, column=0, pady=5)
+        self._start_button = ttk.Button(
+            menu_screen,
             text="Match",
             padding="15 10",
             command=self.start_match,
         )
-        self.start_button.state(["disabled"])
-        self.start_button.grid(row=2, column=0, pady=5)
+        self._start_button.state(["disabled"])
+        self._start_button.grid(row=2, column=0, pady=5)
         ttk.Button(
-            menu_frame,
-            text="Exit",
-            padding="15 10",
-            command=self.exit_game,
-        ).grid(row=3, column=0, pady=5)
-        ttk.Button(
-            menu_frame,
+            menu_screen,
             text="Go To Game (temporary)",
             padding="15 10",
             command=self._syntetic_receive_match,
         ).grid(row=4, column=0, pady=5)
-        menu_frame.grid(row=0, column=0)
-        self.current_frame.grid_forget()
-        self.current_frame = menu_frame
+        menu_screen.grid(row=0, column=0)
+        self._current_screen.grid_forget()
+        self._current_screen = menu_screen
 
     def render_game(self):
-        game_frame = ttk.Frame(self.mainframe, style=BASE_STYLE)
-        p1_frame = ttk.Frame(game_frame, style=BASE_STYLE)
-        p2_frame = ttk.Frame(game_frame, style=BASE_STYLE)
+        game_screen = ttk.Frame(self._mainframe, style=BASE_STYLE)
+        p1_frame = ttk.Frame(game_screen, style=BASE_STYLE)
+        p2_frame = ttk.Frame(game_screen, style=BASE_STYLE)
         ttk.Label(
             p1_frame,
             text="P1",
@@ -134,9 +126,9 @@ class Connect4Interface(PyNetgamesServerListener):
         ).grid(row=1, column=0, sticky=N, pady=20)
         p1_frame.grid(row=0, column=0, sticky=N)
         p2_frame.grid(row=0, column=2, sticky=N)
-        board_image = ImageTk.PhotoImage(self.render_game_canvas())
+        board_image = ImageTk.PhotoImage(self.get_board_image())
         board_frame = ttk.Frame(
-            game_frame,
+            game_screen,
             style=BASE_STYLE,
             width=board_image.width(),
             height=board_image.height(),
@@ -155,11 +147,11 @@ class Connect4Interface(PyNetgamesServerListener):
 
         board_frame.grid(row=0, column=1, rowspan=MAX_Y)
 
-        game_frame.grid(row=0, column=0)
-        self.current_frame.grid_forget()
-        self.current_frame = game_frame
+        game_screen.grid(row=0, column=0)
+        self._current_screen.grid_forget()
+        self._current_screen = game_screen
 
-    def render_game_canvas(self) -> Image.Image:
+    def _get_board_image(self) -> Image.Image:
         bottom_size_pad = 100
         bottom_pad = 100
         outline_pad = 20
@@ -225,25 +217,22 @@ class Connect4Interface(PyNetgamesServerListener):
         self.tk.mainloop()
 
     def connect(self):
-        self.connect_button["text"] = "Connecting"
-        self.connect_button.state(["disabled"])
+        self._connect_button["text"] = "Connecting"
+        self._connect_button.state(["disabled"])
         self.server_proxy.send_connect(address="wss://py-netgames-server.fly.dev")
 
     def start_match(self):
-        self.start_button["text"] = "Searching"
-        self.start_button.state(["disabled"])
+        self._start_button["text"] = "Searching"
+        self._start_button.state(["disabled"])
         self.server_proxy.send_match(amount_of_players=2)
-
-    def exit_game(self):
-        exit(0)
 
     def _syntetic_receive_match(self):
         m = MatchStartedMessage(self.match_id, 0)
         self.receive_match(m)
 
     def receive_connection_success(self):
-        self.connect_button["text"] = "Connected"
-        self.start_button.state(["!disabled"])
+        self._connect_button["text"] = "Connected"
+        self._start_button.state(["!disabled"])
 
     def receive_match(self, message: MatchStartedMessage):
         self.match_id = message.match_id
@@ -251,10 +240,16 @@ class Connect4Interface(PyNetgamesServerListener):
         self.render_game()
 
     def receive_move(self, message: MoveMessage):
-        raise NotImplemented
+        raise NotImplementedError
 
     def receive_error(self, error):
-        raise NotImplemented
+        raise NotImplementedError
 
     def receive_disconnect(self):
-        raise NotImplemented
+        raise NotImplementedError
+
+    # def receive_match_requested_success(self):
+    #     raise NotImplementedError
+
+    # def receive_move_sent_success(self):
+    #     raise NotImplementedError
