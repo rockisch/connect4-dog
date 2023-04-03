@@ -126,7 +126,7 @@ class Connect4Interface(PyNetgamesServerListener):
         ).grid(row=1, column=0, sticky=N, pady=20)
         p1_frame.grid(row=0, column=0, sticky=N)
         p2_frame.grid(row=0, column=2, sticky=N)
-        board_image = ImageTk.PhotoImage(self.get_board_image())
+        board_image = ImageTk.PhotoImage(self._get_board_image())
         board_frame = ttk.Frame(
             game_screen,
             style=BASE_STYLE,
