@@ -28,22 +28,62 @@ O projeto será desenvolvido com base em uma especificação UML e usará Python
 
 1. Visual Paradigm será usado para o projeto UML.
 2. Enquanto Tkinter será usado para a interface, alguns elementos serão importados através de assets, ou renderizados 'na mão' utilizando a biblioteca `PIL` (fork da biblioteca `Pillow`).
-3. Interface do jogo será baseada na versão disponivel para Nintendo Switch no jogo Clubhouse 51.
+3. Interface do jogo será baseada na versão disponivel para Nintendo Switch no jogo Clubhouse 51. Segue comparacoes da inspiracao com o design inicial:
+
+![exemplo do design do jogo na versão do switch](clubhouse.jpg)
+
+![exemplo do design desenvolvido para o nosso jogo, inspirado pela versão do switch](design.png)
 
 ## Regras do Jogo
 
-Connect 4 é um jogo de 2 jogadores onde cada jogador toma turnos colocando peças em uma 'grid' 6x7, e o primeiro a fechar uma sequencia de 4 peças na horizontal, vertical ou diagonal ganha. Peças só podem ser colocadas no primeiro 'slot' disponivel de cada coluna, de baixo para cima. Por exemplo, considerando este board:
+Connect 4 é um jogo de 2 jogadores onde cada jogador toma turnos colocando peças em uma matriz de
+largura 6 e altura 7 funciona de forma similar ao jogo da velha, com exceção de que ao invés de uma
+sequência de três na diagonal, vertical ou horizontal, é necessária uma sequência de 4 peças, as peças só
+podem ser colocadas na posição mais inferior disponível de cada coluna, de forma que as peças "se
+empilhem". Caso uma coluna fique cheia, ela não poderá ser escolhida para colocar uma peça.
 
-|     |     |     |     |     |     |     |
-| --- | --- | --- | --- | --- | --- | --- |
-| .   | .   | .   | .   | .   | .   | .   |
-| .   | .   | .   | .   | .   | .   | .   |
-| .   | .   | .   | .   | .   | .   | .   |
-| .   | .   | .   | .   | .   | .   | .   |
-| .   | .   | .   | O   | X   | X   | .   |
-| O   | O   | .   | O   | X   | X   | .   |
-|     |     |     |     |     |     |     |
+Exemplo de uma partida:
 
-Caso o jogador 'O' escolhesse a coluna 3 em seu turno, a peça iria parar entre as outras duas 'O', e ele ganharia, pois uma linha de 4 peças teria sido fechada.
+Inicio de jogo:
 
-Colunas cheias não podem receber peças adicionais.
+![board vazio](ex0.png)
+
+Jogador 1 Escolhe a coluna 2:
+
+![peça vermelha cai no final](ex1.png)
+
+Jogador 2 Escolhe a coluna 3:
+
+![peça amarela cai no final](ex2.png)
+
+Jogador 1 Escolhe a coluna 2:
+
+![peça vermelha cai em cima da primeira vermelha](ex3.png)
+
+Jogador 2 Escolhe a coluna 2:
+
+![peça amarela cai em cima das duas vermelhas](ex4.png)
+
+Jogador 1 Escolhe a coluna 3:
+
+![peça vermelha cai em cima da peça amarela](ex5.png)
+
+Jogador 2 Escolhe a coluna 4:
+
+![peça amarela cai no final](ex6.png)
+
+Jogador 1 Escolhe a coluna 4:
+
+![peça vermelha cai no em cima da amarela](ex7.png)
+
+Jogador 2 Escolhe a coluna 5:
+
+![peça amarela cai no final](ex8.png)
+
+Jogador 1 Escolhe a coluna 5:
+
+![peça vermelha cai no em cima da amarela](ex9.png)
+
+Linha de 4 fechada, jogador 1 ganha o jogo:
+
+![a ultima jogada resultou em uma linha de 4 pecas do jogador sendo formada, resultando em usa vitoria](exfinal.png)
