@@ -95,12 +95,6 @@ class Connect4Interface(PyNetgamesServerListener):
         )
         self._start_button.state(["disabled"])
         self._start_button.grid(row=2, column=0, pady=5)
-        ttk.Button(
-            menu_screen,
-            text="Go To Game (temporary)",
-            padding="15 10",
-            command=self._syntetic_receive_match,
-        ).grid(row=4, column=0, pady=5)
         menu_screen.grid(row=0, column=0)
         self._current_screen.grid_forget()
         self._current_screen = menu_screen
@@ -226,18 +220,21 @@ class Connect4Interface(PyNetgamesServerListener):
         self._start_button.state(["disabled"])
         self.server_proxy.send_match(amount_of_players=2)
 
-    def _syntetic_receive_match(self):
-        m = MatchStartedMessage(self.match_id, 0)
-        self.receive_match(m)
-
     def receive_connection_success(self):
         self._connect_button["text"] = "Connected"
         self._start_button.state(["!disabled"])
+        self.send_match()
 
-    def receive_match(self, message: MatchStartedMessage):
-        self.match_id = message.match_id
+    def receive_match(self, match):
+        self.match_id = match.match_id
+        print("PARTIDA INICIADA")
+        print("ORDEM : %s" % str(match.position))
+        print("MATCH ID : %s" % str(match.match_id))
         self.board = Tabuleiro()
         self.render_game()
+
+    def send_match(self):
+        self.server_proxy.send_match(2)
 
     def receive_move(self, message: MoveMessage):
         raise NotImplementedError
@@ -247,9 +244,6 @@ class Connect4Interface(PyNetgamesServerListener):
 
     def receive_disconnect(self):
         raise NotImplementedError
-
-    # def receive_match_requested_success(self):
-    #     raise NotImplementedError
 
     # def receive_move_sent_success(self):
     #     raise NotImplementedError
