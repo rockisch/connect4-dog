@@ -223,7 +223,6 @@ class Connect4Interface(PyNetgamesServerListener):
     def receive_connection_success(self):
         self._connect_button["text"] = "Connected"
         self._start_button.state(["!disabled"])
-        self.send_match()
 
     def receive_match(self, match):
         self.match_id = match.match_id
